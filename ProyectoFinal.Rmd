@@ -1,0 +1,627 @@
+---
+title: "PROYECTO_FINAL"
+output: html_document
+---
+
+
+```{r}
+#FUNCIONES
+
+#Calculo de tasa total de perdida de primer orden
+tasatotal <- function(venext, tasadesc, descsup){
+  ttotal <- venext+tasadesc+descsup
+  return(ttotal)
+}
+
+#Numero de pasajeros infectados
+npasajerosi <- function(fpoblacion, npasajeros){
+  npi <- (fpoblacion/100)*npasajeros
+  return(npi)
+}
+#tasa de emision neta 
+tasaemineta <- function(Tquantum, memi){
+  tneta <- Tquantum*(1-(memi/100))
+  return(tneta)
+}
+#Avg Quantum Conc. (1 infectado)
+Avg1 <- function(tneta, ttotal, volumen, tviaje){
+  avg1i <- tneta/ttotal/volumen*(1-(1/ttotal/tviaje)*(1-exp(-ttotal*tviaje)))
+  return(avg1i)
+}
+
+#Avg Quantum Conc. (con Problema de inf)
+Avg2 <- function(avg1i, npi){
+  avg2i <- avg1i*npi
+  return(avg2i)
+}
+
+#Quantum inhalado por persona
+quaninhalado <- function(avg2i, fresp, tviaje, ming){
+  quaninh <- avg2i*fresp*tviaje*(1-ming/100)
+  return(quaninh)
+}
+
+#probabilidad de infeccion 
+proinfec<- function(quaninh){
+  probi<- 1-exp(-quaninh)
+  return(probi)
+}
+
+#Cantidad de personas contagiadas
+contagiados <- function(pasajeros, probi){
+  cont <- pasajeros*probi
+  return(cont)
+}
+```
+
+### Escenarios para Airbus A300-600ST 
+
+
+Escenario 1
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 5 #Fraccion de poblacion infectada
+memi<- 0  #Eficacia mascarilla para la emision
+ming<- 0 #Eficacia mascarilla para la ingesta
+tiempototalviaje<- 2#tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+j<-0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados1 <- c() #vector de cantidad de infectados
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados1<-append(vinfectados1, cont)
+  
+  i<-i+1
+}
+
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados1[i]))
+
+plot(vinfectados1, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 2
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 208 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 5 #Fraccion de poblacion infectada
+memi<- 0  #Eficacia mascarilla para la emision
+ming<- 0 #Eficacia mascarilla para la ingesta
+tiempototalviaje<- 2#tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados2 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados2<-append(vinfectados2, cont)
+  
+  i<-i+1
+}
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados2[i]))
+
+plot(vinfectados2, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 3
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 208 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 5 #Fraccion de poblacion infectada
+memi<- 50 #Eficacia mascarilla para la emision
+ming<- 30 #Eficacia mascarilla para la ingesta
+tiempototalviaje<- 2#tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados3 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados3<-append(vinfectados3, cont)
+  
+  i<-i+1
+}
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados3[i]))
+
+plot(vinfectados3, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 4
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 2 #Fraccion de poblacion infectada
+memi<- 50  #Eficacia mascarilla para la ingesta
+ming<- 30  #Eficacia mascarilla para la emision
+tiempototalviaje<-2 #tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados4 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados4<-append(vinfectados4, cont)
+  
+  i<-i+1
+}
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados4[i]))
+
+plot(vinfectados4, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 5
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 2 #Fraccion de poblacion infectada
+memi<- 90  #Eficacia mascarilla para la ingesta
+ming<- 90  #Eficacia mascarilla para la emision
+tiempototalviaje<-2 #tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados5 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados5<-append(vinfectados5, cont)
+  
+  i<-i+1
+}
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados5[i]))
+
+plot(vinfectados5, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 6
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 0.028 #Fraccion de poblacion infectada
+memi<- 50  #Eficacia mascarilla para la ingesta
+ming<- 30  #Eficacia mascarilla para la emision
+tiempototalviaje<-2 #tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados6 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados6<-append(vinfectados6, cont)
+  
+  i<-i+1
+}
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados6[i]))
+
+plot(vinfectados6, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 7
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 0.028 #Fraccion de poblacion infectada
+memi<- 90  #Eficacia mascarilla para la ingesta
+ming<- 90 #Eficacia mascarilla para la emision
+tiempototalviaje<-2 #tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados7 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados7<-append(vinfectados7, cont)
+  
+  i<-i+1
+}
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados7[i]))
+
+plot(vinfectados7, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+Escenario 8
+
+```{r}
+N<-120
+volumen <- 1400 #Volumen de la Aeronave - Boeing 747-400
+npasajeros <- 416 #Numero de Pasajeros en el vuelo
+fresp<-0.8 #Frecuencia respiratoria
+tviaje<-0 #Tiempo dee viaje inicial
+fpoblacion <- 0.028 #Fraccion de poblacion infectada
+memi<- 0  #Eficacia mascarilla para la ingesta
+ming<- 0 #Eficacia mascarilla para la emision
+tiempototalviaje<-2 #tiempo total en horas
+sum<-tiempototalviaje/N 
+i<- 0
+
+
+#vectores
+
+vtasatotperdida<-c() #vector de tasa total de perdida
+vtasaemineta <- c() #vector de tasa de emision neta
+vavg1<- c() # Avg Quanta Conc 1 Infectado
+vavg2<- c() #Avg Quantum Conc. (con Problema de inf)
+vquantuminhper <- c() #vector de quantum inhalado 
+vprobinfec <- c() #vector probabilidad de infeccion
+vinfectados8 <- c() #vector de cantidad de infectados
+
+
+
+while(tviaje<=tiempototalviaje){
+  
+  tviaje <- tviaje+sum
+  venext<-runif(1,3,3.5)
+  tasadesc<-runif(1,0,0.62)
+  descsup<-runif(1,0.24,1.5)
+  ttotal <- tasatotal(venext, tasadesc, descsup)
+  Tquantum <- 10
+  tneta <- tasaemineta(Tquantum, memi)
+  npi <- npasajerosi(fpoblacion, npasajeros)
+  avg1i <- Avg1(tneta, ttotal, volumen, tviaje)
+  avg2i <- Avg2(avg1i, npi)
+  quaninh <- quaninhalado(avg2i, fresp, tviaje, ming)
+  probi<- proinfec(quaninh)
+  cont<-contagiados(npasajeros, probi)
+
+  
+  
+  vtasatotperdida <- append(vtasatotperdida,ttotal)
+  
+  vtasaemineta <- append(vtasaemineta,tneta)
+  
+  vavg1 <- append(vavg1,avg1i)
+  vavg2 <- append(vavg1,avg2i)
+  
+  vquantuminhper <- append(vquantuminhper, quaninh)
+  
+  vprobinfec <- append(vprobinfec, probi)
+  
+  vinfectados8<-append(vinfectados8, cont)
+  
+  i<-i+1
+}
+
+print(round(npi))
+print(mean(vprobinfec))
+print(round(vinfectados8[i]))
+
+plot(vinfectados8, xlab = "Tiempo minutos", ylab = "Personas")
+```
+
+```{r}
+
+par(mfrow = c(1,4))
+plot(vinfectados1, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 1")
+plot(vinfectados2, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 2")
+plot(vinfectados3, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 3")
+plot(vinfectados4, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 4")
+```
+```{r}
+
+par(mfrow = c(1,4))
+plot(vinfectados5, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 5")
+plot(vinfectados6, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 6")
+plot(vinfectados7, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 7")
+plot(vinfectados8, xlab = "Tiempo minutos", ylab = "Personas", main = "Escenario 8")
+```
+
